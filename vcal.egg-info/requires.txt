@@ -1,5 +1,7 @@
+hciplot
 
 [dev]
+hciplot
 sphinx
 pandoc
 pytest

@@ -463,14 +463,17 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                         if bp_crop_sz_tmp > 0 and bp_crop_sz_tmp < cube.shape[1]:
                             cube = cube_crop_frames(cube, bp_crop_sz_tmp)
 
-                        cube = cube_fix_badpix_clump(cube, bpm_mask=None, cy=None, cx=None, fwhm=1.2*resel[fi],
-                                                     sig=6., protect_mask=False, verbose=full_output,
-                                                     half_res_y=False, max_nit=10, full_output=full_output,
-                                                     nproc=nproc)
+                        #cube = cube_fix_badpix_clump(cube, bpm_mask=None, cy=None, cx=None, fwhm=1.2*resel[fi],
+                        #                             sig=6., protect_mask=False, verbose=full_output,
+                        #                             half_res_y=False, max_nit=1, full_output=full_output,
+                        #                             nproc=nproc)
+                        #if full_output:
+                        #    write_fits(
+                        #        outpath+filename+"_1bpcorr_bpmap.fits", cube[1], header=header)
+                        #    cube = cube[0]
                         if full_output:
                             write_fits(
-                                outpath+filename+"_1bpcorr_bpmap.fits", cube[1], header=header)
-                            cube = cube[0]
+                                    outpath+filename+"_1bpcorr_bpmap.fits", np.zeros_like(cube[0]), header=header)
                         write_fits(outpath+filename+"_1bpcorr.fits",
                                    cube, header=header)
             if save_space:
@@ -515,7 +518,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                                                                nproc=nproc, interpolation='lanczos4',
                                                                                offset=None, negative=negative, threshold=False,
                                                                                save_shifts=False, full_output=True, verbose=verbose,
-                                                                               debug=False, plot=plot)
+                                                                               debug=False, plot=plot, imlib = 'opencv')
  
                                     std_shift.append(np.sqrt(np.std(y_shifts)**2+np.std(x_shifts)**2))
                                     if debug:
@@ -538,7 +541,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                     #2. alignment with upsampling
                                     cube, y_shifts, x_shifts = cube_recenter_dft_upsampling(cube, center_fr1=None, negative=negative,
                                                                                             fwhm=1.2*resel[ff], subi_size=cen_box_sz[fi], upsample_factor=int(rec_met_tmp[ii][4:]),
-                                                                                            interpolation='lanczos4',
+                                                                                            interpolation='lanczos4', imlib = 'opencv',
                                                                                             full_output=True, verbose=verbose, nproc=nproc,
                                                                                             save_shifts=False, debug=False, plot=plot)
                                     std_shift.append(
@@ -548,7 +551,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                         [1, cube.shape[1], cube.shape[2]])
                                     cube_tmp[0] = np.median(cube, axis=0)
                                     _, y_shifts_tmp, x_shifts_tmp = cube_recenter_2dfit(cube_tmp, xy=None, fwhm=1.2*resel[ff], subi_size=cen_box_sz[fi], model='moff',
-                                                                                nproc=nproc, interpolation='lanczos4',
+                                                                                nproc=nproc, interpolation='lanczos4', imlib = 'opencv',
                                                                                 offset=None, negative=negative, threshold=False,
                                                                                 save_shifts=False, full_output=True, verbose=True,
                                                                                 debug=False, plot=plot)
@@ -702,7 +705,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                                                                           gammaval=1, min_spat_freq=0.5, max_spat_freq=3,
                                                                                           fwhm=1.2*max_resel, debug=False, negative=negative,
                                                                                           recenter_median=False, subframesize=20,
-                                                                                          interpolation='bilinear',
+                                                                                          interpolation='bilinear', imlib = 'opencv',
                                                                                           save_shifts=False, plot=plot,
                                                                                           nproc=nproc)
                                     std_shift.append(np.sqrt(np.std(y_shifts)**2+np.std(x_shifts)**2))                                                           
@@ -759,7 +762,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                 y_max, x_max = np.unravel_index(np.argmax(tmp),tmp.shape)
                                 cube, y_shifts, x_shifts = cube_recenter_2dfit(cube, xy=(int(x_max), int(y_max)),
                                                                                fwhm=1.2*resel[ff], subi_size=cen_box_sz[fi], model=rec_met_tmp[:-6],
-                                                                               nproc=nproc, interpolation='lanczos4',
+                                                                               nproc=nproc, interpolation='lanczos4', imlib = 'opencv',
                                                                                offset=None, negative=negative, threshold=False,
                                                                                save_shifts=False, full_output=True, verbose=verbose,
                                                                                debug=False, plot=False)
@@ -835,7 +838,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                         cube_hpf = cube_filter_highpass(cube_tmp, mode='gauss-subt', fwhm_size=3)
 
                                         _, y, x = cube_recenter_dft_upsampling(cube_hpf, center_fr1=None,
-                                                                               subi_size=None,
+                                                                               subi_size=None, imlib = 'opencv',
                                                                                upsample_factor=int(rec_met_tmp[11:]),
                                                                                verbose=False, plot=False,
                                                                                full_output=True)
@@ -885,14 +888,14 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                 cube, y_shifts, x_shifts = cube_recenter_dft_upsampling(cube, center_fr1=None, negative=False,
                                                                                         fwhm=4, subi_size=cen_box_sz[fi],
                                                                                         upsample_factor=int(rec_met_tmp[4:]),
-                                                                                        interpolation='lanczos4',
+                                                                                        interpolation='lanczos4', imlib = 'opencv',
                                                                                         full_output=True, verbose=verbose, nproc=nproc,
                                                                                         save_shifts=False, debug=False, plot=plot)                              
                                 #3 final centering based on 2d fit
                                 cube_tmp = np.zeros([1,cube.shape[1],cube.shape[2]])
                                 cube_tmp[0] = np.median(cube,axis=0)
                                 _, y_shifts_tmp, x_shifts_tmp = cube_recenter_2dfit(cube_tmp, xy=None, fwhm=1.2*resel[ff], subi_size=cen_box_sz[fi], model='moff',
-                                                                            nproc=nproc, interpolation='lanczos4',
+                                                                            nproc=nproc, interpolation='lanczos4', imlib = 'opencv',
                                                                             offset=None, negative=False, threshold=False,
                                                                             save_shifts=False, full_output=True, verbose=verbose,
                                                                             debug=False, plot=plot)
@@ -1104,7 +1107,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                                                                                             fwhm=1.2*max_resel, debug=False,
                                                                                             negative=negative,
                                                                                             recenter_median=False, subframesize=cen_box_sz[fi],
-                                                                                            interpolation='bilinear',
+                                                                                            interpolation='bilinear', imlib = 'opencv',
                                                                                             save_shifts=False, plot=False,
                                                                                             nproc=nproc)
                             else:
@@ -2090,7 +2093,7 @@ def preproc_IRDIS(params_preproc_name='VCAL_params_preproc_IRDIS.json',
                 # PSF ONLY
                 for ff, filt in enumerate(filters):
                     if not isfile(outpath+final_psfname+".fits") or overwrite[6]:
-                        cube = open_fits(outpath+"3_master{}_cube_clean_{}{}.fits".format(
+                        cube = open_fits(outpath+"3_master{}_cube_clean_{}{}".format(
                             labels[idx_psf], filt, "-".join(badfr_crit_names_psf)))
                         # crop
                         if cube.shape[1] > crop_sz or cube.shape[2] > crop_sz:
